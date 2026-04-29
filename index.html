@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Street — Wohnungskonfigurator</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--g:#546158;--c:#F8F6F1;--b:rgba(84,97,88,0.2);--m:rgba(84,97,88,0.5);--t:#2c322e;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--c);color:var(--t);font-family:'Montserrat',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+header{padding:14px 28px;border-bottom:1px solid var(--b);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-family:Georgia,serif;font-size:15px;letter-spacing:.2em;color:var(--g);text-transform:uppercase;}
+.sub{font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--m);margin-top:2px;}
+.hstats{display:flex;gap:12px;}
+.stat{border:1px solid var(--b);padding:6px 12px;text-align:center;}
+.stat strong{display:block;font-family:Georgia,serif;font-size:15px;color:var(--g);line-height:1.1;}
+.stat span{font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);}
+.main{display:grid;grid-template-columns:270px 1fr;flex:1;overflow:hidden;}
+.lp{display:flex;flex-direction:column;border-right:1px solid var(--b);overflow:hidden;}
+.lt{padding:11px 14px 9px;border-bottom:1px solid var(--b);flex-shrink:0;}
+.sl{font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--m);margin-bottom:5px;margin-top:8px;}
+.sl:first-child{margin-top:0;}
+.ft{display:flex;border:1px solid var(--b);margin-bottom:2px;}
+.fb{flex:1;min-width:0;padding:5px 2px;background:transparent;border:none;border-right:1px solid var(--b);font-family:'Montserrat',sans-serif;font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--m);cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fb:last-child{border-right:none;}.fb:hover{color:var(--g);}.fb.on{background:var(--g);color:var(--c);}
+.ls{overflow-y:auto;flex:1;}
+.ar{display:grid;grid-template-columns:50px 1fr auto;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--b);cursor:pointer;transition:background .12s;position:relative;}
+.ar::before{content:'';position:absolute;left:0;top:0;width:3px;height:100%;}
+.ar.frei::before{background:var(--g);}.ar.reserviert::before{background:#b8956a;}.ar.vermietet::before{background:#b0ada8;}
+.ar:hover,.ar.on{background:rgba(84,97,88,0.06);}
+.ar .nr{font-family:Georgia,serif;font-size:14px;color:var(--g);line-height:1;}
+.ar.reserviert .nr{color:#b8956a;}.ar.vermietet .nr{color:#b0ada8;}
+.ar .me{font-size:9px;color:var(--m);line-height:1.5;}
+.ar .me b{display:block;font-size:10px;color:var(--t);font-weight:500;}
+.ar .ch{font-size:9px;color:var(--g);text-align:right;white-space:nowrap;line-height:1.5;}
+.ar.vermietet .ch{color:#b0ada8;}
+.leg{display:flex;gap:12px;padding:8px 14px;border-top:1px solid var(--b);flex-shrink:0;}
+.li{display:flex;align-items:center;gap:5px;font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);}
+.pi{width:7px;height:7px;border-radius:1px;}
+.pi.f{background:var(--g);}.pi.r{background:#b8956a;}.pi.v{background:#b0ada8;}
+.ip{position:relative;overflow:hidden;background:var(--c);cursor:grab;user-select:none;}
+.ip:active{cursor:grabbing;}
+.ic{position:absolute;transform-origin:0 0;will-change:transform;}
+.apt{cursor:pointer;transition:opacity .18s,filter .18s;}
+.dimmed .apt{opacity:0.18;}
+.dimmed .apt.lit{opacity:1;filter:brightness(1.3) saturate(1.1);}
+.apt.sel{filter:brightness(1.4) saturate(1.2);}
+.tt{position:absolute;pointer-events:none;background:rgba(248,246,241,0.97);border:1px solid var(--b);padding:14px 16px;min-width:200px;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:20;}
+.tt.show{opacity:1;transform:translateY(0);}
+.tt-nr{font-family:Georgia,serif;font-size:22px;color:var(--g);line-height:1;}
+.tt-nm{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--m);margin-bottom:6px;}
+.tt-or{font-size:9px;color:var(--m);margin-bottom:8px;}
+.tt-st{display:inline-block;border:1px solid;padding:3px 8px;font-size:7px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
+.tt-st.frei{border-color:var(--g);color:var(--g);}.tt-st.reserviert{border-color:#b8956a;color:#b8956a;}.tt-st.vermietet{border-color:#b0ada8;color:#b0ada8;}
+.tt-gr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.tt-it label{font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);display:block;margin-bottom:2px;}
+.tt-it value{font-family:Georgia,serif;font-size:15px;color:var(--g);}
+.tt-it value small{font-family:'Montserrat',sans-serif;font-size:9px;color:var(--m);}
+.tt-miete{background:rgba(84,97,88,0.06);padding:8px 10px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;}
+.tt-mi label{font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);display:block;margin-bottom:1px;}
+.tt-mi value{font-family:Georgia,serif;font-size:13px;color:var(--g);}
+.tt-bt{display:block;padding:9px;background:var(--g);color:var(--c);border:none;font-family:'Montserrat',sans-serif;font-size:8px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;width:100%;text-align:center;transition:background .18s;}
+.tt-bt:hover{background:#3d4840;}.tt-bt.wait{background:#b8956a;}.tt-bt:disabled{background:#b0ada8;cursor:not-allowed;}
+.fl{position:absolute;top:14px;right:14px;background:rgba(248,246,241,0.93);border:1px solid var(--b);padding:10px 12px;min-width:110px;}
+.fli{display:flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);cursor:pointer;padding:3px 0;transition:color .15s;}
+.fli:hover{color:var(--g);}.fli.on{color:var(--g);font-weight:500;}
+.fld{width:8px;height:8px;border-radius:1px;background:rgba(84,97,88,0.2);flex-shrink:0;}
+.fli.on .fld{background:var(--g);}
+.fl-lbl{font-size:7px;letter-spacing:.14em;text-transform:uppercase;color:var(--m);margin-bottom:5px;}
+.zc{position:absolute;bottom:14px;right:14px;display:flex;flex-direction:column;gap:3px;}
+.zb{width:28px;height:28px;background:rgba(248,246,241,0.95);border:1px solid var(--b);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g);}
+.zb:hover{background:rgba(84,97,88,0.1);}
+.hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);pointer-events:none;white-space:nowrap;}
+.no-results{padding:24px 14px;text-align:center;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--m);}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">Living Street</div>
+    <div class="sub">Wartstrasse · 9244 Niederuzwil · Bezug Frühling 2027</div>
+  </div>
+  <div class="hstats">
+    <div class="stat"><strong id="sf">—</strong><span>Verfügbar</span></div>
+    <div class="stat"><strong id="sr">—</strong><span>Reserviert</span></div>
+    <div class="stat"><strong>44</strong><span>Wohnungen</span></div>
+  </div>
+</header>
+<div class="main">
+  <div class="lp">
+    <div class="lt">
+      <div class="sl">Haus</div>
+      <div class="ft" id="htabs"></div>
+      <div class="sl">Etage</div>
+      <div class="ft" id="ftabs"></div>
+      <div class="sl">Wohnungsgrösse</div>
+      <div class="ft" id="ztabs"></div>
+    </div>
+    <div class="ls" id="list"></div>
+    <div class="leg">
+      <div class="li"><div class="pi f"></div>Verfügbar</div>
+      <div class="li"><div class="pi r"></div>Reserviert</div>
+      <div class="li"><div class="pi v"></div>Vermietet</div>
+    </div>
+  </div>
+  <div class="ip" id="ip">
+    <div class="ic" id="ic">
+      <svg viewBox="0 0 2598 1727" width="2598" height="1727" xmlns="http://www.w3.org/2000/svg">
+        <rect width="2598" height="1727" fill="#F8F6F1"/>
+        <polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="624.5,1561.2 617.4,1555.8 617.4,1511.9 624.5,1517.3"/>
+<polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="917.1,1583.9 773.2,1667.9 773.2,1624.0 917.1,1540.0"/>
+<polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="687.6,1620.0 668.0,1628.3 668.0,1584.4 687.6,1576.1"/>
+<polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="773.2,1667.9 687.6,1620.0 687.6,1576.1 773.2,1624.0"/>
+<polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="668.0,1628.3 639.4,1614.1 639.4,1570.2 668.0,1584.4"/>
+<polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="639.4,1614.1 584.8,1644.6 584.8,1600.7 639.4,1570.2"/>
+<polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="584.8,1644.6 522.9,1610.4 522.9,1566.5 584.8,1600.7"/>
+<polygon class="apt apt-11_01" data-apt="11.01" data-house="11" data-floor="EG" data-rooms="4.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="693.2,1468.4 780.7,1517.4 832.3,1490.9 917.1,1540.0 773.2,1624.0 687.6,1576.1 668.0,1584.4 639.4,1570.2 584.8,1600.7 522.9,1566.5 583.0,1533.2 594.6,1534.7 624.5,1517.3 617.4,1511.9 693.2,1468.4"/>
+<polygon class="apt apt-11_02" data-apt="11.02" data-house="11" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="449.3,1456.0 421.7,1439.3 421.7,1395.4 449.3,1412.1"/>
+<polygon class="apt apt-11_02" data-apt="11.02" data-house="11" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="693.0,1512.2 599.8,1565.2 599.8,1521.3 693.0,1468.3"/>
+<polygon class="apt apt-11_02" data-apt="11.02" data-house="11" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="599.8,1565.2 590.1,1564.9 590.1,1521.0 599.8,1521.3"/>
+<polygon class="apt apt-11_02" data-apt="11.02" data-house="11" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="590.1,1564.9 536.4,1595.9 536.4,1552.0 590.1,1521.0"/>
+<polygon class="apt apt-11_02" data-apt="11.02" data-house="11" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="540.0,1600.5 449.4,1651.4 449.4,1607.6 540.0,1556.6"/>
+<polygon class="apt apt-11_02" data-apt="11.02" data-house="11" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="449.4,1651.4 250.9,1536.4 250.9,1492.5 449.4,1607.6"/>
+<polygon class="apt apt-11_02" data-apt="11.02" data-house="11" data-floor="EG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="457.7,1373.2 497.0,1394.0 534.2,1375.5 693.0,1468.3 599.8,1521.3 590.1,1521.0 536.4,1552.0 540.0,1556.6 449.4,1607.6 250.9,1492.5 376.4,1420.1 384.8,1423.3 410.8,1408.9 433.7,1420.9 449.1,1415.2 449.3,1412.1 421.7,1395.4 457.7,1373.2"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="624.5,1517.4 617.4,1512.1 617.4,1468.2 624.5,1473.5"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="917.1,1540.2 773.2,1624.2 773.2,1580.3 917.1,1496.3"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="687.6,1576.2 668.0,1584.5 668.0,1540.6 687.6,1532.3"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="773.2,1624.2 687.6,1576.2 687.6,1532.3 773.2,1580.3"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="668.0,1584.5 639.4,1570.4 639.4,1526.5 668.0,1540.6"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="639.4,1570.4 584.8,1600.8 584.8,1556.9 639.4,1526.5"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="584.8,1600.8 522.9,1566.7 522.9,1522.8 584.8,1556.9"/>
+<polygon class="apt apt-11_05" data-apt="11.05" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="693.2,1424.6 780.7,1473.7 832.3,1447.2 917.1,1496.3 773.2,1580.3 687.6,1532.3 668.0,1540.6 639.4,1526.5 584.8,1556.9 522.9,1522.8 583.0,1489.5 594.6,1490.9 624.5,1473.5 617.4,1468.2 693.2,1424.6"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="439.2,1365.2 406.9,1386.5 406.9,1342.6 439.2,1321.3"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="457.6,1417.1 430.1,1433.0 430.1,1389.1 457.6,1373.2"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="424.5,1429.0 419.5,1429.3 419.5,1385.4 424.5,1385.1"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="430.1,1433.0 424.5,1429.0 424.5,1385.1 430.1,1389.1"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="419.5,1429.3 391.6,1446.9 391.6,1403.0 419.5,1385.4"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="304.8,1409.5 299.0,1405.2 299.0,1361.3 304.8,1365.6"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="394.0,1452.5 376.4,1464.0 376.4,1420.1 394.0,1408.6"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="376.4,1464.0 250.9,1536.4 250.9,1492.5 376.4,1420.1"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="247.7,1535.5 160.4,1485.3 160.4,1441.4 247.7,1491.6"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="250.9,1536.4 247.7,1535.5 247.7,1491.6 250.9,1492.5"/>
+<polygon class="apt apt-11_03" data-apt="11.03" data-house="11" data-floor="EG" data-rooms="2.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="404.4,1300.5 439.2,1321.3 406.9,1342.6 457.6,1373.2 430.1,1389.1 424.5,1385.1 419.5,1385.4 391.6,1403.0 394.0,1408.6 376.4,1420.1 250.9,1492.5 247.7,1491.6 160.4,1441.4 288.1,1367.6 298.4,1370.2 304.8,1365.6 299.0,1361.3 404.4,1300.5"/>
+<polygon class="apt apt-11_06" data-apt="11.06" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="449.3,1412.3 421.7,1395.6 421.7,1351.7 449.3,1368.4"/>
+<polygon class="apt apt-11_06" data-apt="11.06" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="693.0,1468.4 599.8,1521.5 599.8,1477.6 693.0,1424.5"/>
+<polygon class="apt apt-11_06" data-apt="11.06" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="599.8,1521.5 590.1,1521.2 590.1,1477.3 599.8,1477.6"/>
+<polygon class="apt apt-11_06" data-apt="11.06" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="590.1,1521.2 536.4,1552.1 536.4,1508.3 590.1,1477.3"/>
+<polygon class="apt apt-11_06" data-apt="11.06" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="540.0,1556.7 449.4,1607.7 449.4,1563.8 540.0,1512.9"/>
+<polygon class="apt apt-11_06" data-apt="11.06" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="449.4,1607.7 250.9,1492.7 250.9,1448.8 449.4,1563.8"/>
+<polygon class="apt apt-11_06" data-apt="11.06" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="457.7,1329.5 497.0,1350.3 534.2,1331.8 693.0,1424.5 599.8,1477.6 590.1,1477.3 536.4,1508.3 540.0,1512.9 449.4,1563.8 250.9,1448.8 376.4,1376.4 384.8,1379.5 410.8,1365.1 433.7,1377.2 449.1,1371.5 449.3,1368.4 421.7,1351.7 457.7,1329.5"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="624.5,1473.7 617.4,1468.4 617.4,1424.5 624.5,1429.8"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="917.1,1496.5 773.2,1580.5 773.2,1536.6 917.1,1452.6"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="687.6,1532.5 668.0,1540.8 668.0,1496.9 687.6,1488.6"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="773.2,1580.5 687.6,1532.5 687.6,1488.6 773.2,1536.6"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="668.0,1540.8 639.4,1526.7 639.4,1482.8 668.0,1496.9"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="639.4,1526.7 584.8,1557.1 584.8,1513.2 639.4,1482.8"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="584.8,1557.1 522.9,1522.9 522.9,1479.0 584.8,1513.2"/>
+<polygon class="apt apt-11_09" data-apt="11.09" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="693.2,1380.9 780.7,1430.0 832.3,1403.5 917.1,1452.6 773.2,1536.6 687.6,1488.6 668.0,1496.9 639.4,1482.8 584.8,1513.2 522.9,1479.0 583.0,1445.8 594.6,1447.2 624.5,1429.8 617.4,1424.5 693.2,1380.9"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="439.2,1321.4 406.9,1342.7 406.9,1298.8 439.2,1277.5"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="457.6,1373.3 430.1,1389.2 430.1,1345.4 457.6,1329.4"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="424.5,1385.3 419.5,1385.5 419.5,1341.6 424.5,1341.4"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="430.1,1389.2 424.5,1385.3 424.5,1341.4 430.1,1345.4"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="419.5,1385.5 391.6,1403.2 391.6,1359.3 419.5,1341.6"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="304.8,1365.7 299.0,1361.5 299.0,1317.6 304.8,1321.9"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="394.0,1408.8 376.4,1420.2 376.4,1376.4 394.0,1364.9"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="376.4,1420.2 250.9,1492.7 250.9,1448.8 376.4,1376.4"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="247.7,1491.8 160.4,1441.5 160.4,1397.6 247.7,1447.9"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="250.9,1492.7 247.7,1491.8 247.7,1447.9 250.9,1448.8"/>
+<polygon class="apt apt-11_07" data-apt="11.07" data-house="11" data-floor="1.OG" data-rooms="3.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="404.4,1256.8 439.2,1277.5 406.9,1298.8 457.6,1329.4 430.1,1345.4 424.5,1341.4 419.5,1341.6 391.6,1359.3 394.0,1364.9 376.4,1376.4 250.9,1448.8 247.7,1447.9 160.4,1397.6 288.1,1323.9 298.4,1326.5 304.8,1321.9 299.0,1317.6 404.4,1256.8"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="284.0,1218.4 238.7,1245.8 238.7,1201.9 284.0,1174.5"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="238.7,1245.8 238.4,1248.5 238.4,1204.6 238.7,1201.9"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="137.5,1300.4 60.0,1255.0 60.0,1211.1 137.5,1256.5"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="404.4,1344.4 299.0,1405.2 299.0,1361.3 404.4,1300.5"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="142.5,1329.3 119.1,1314.5 119.1,1270.6 142.5,1285.4"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="299.0,1405.2 279.8,1394.4 279.8,1350.5 299.0,1361.3"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="279.8,1394.4 270.0,1397.9 270.0,1354.0 279.8,1350.5"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="148.6,1398.1 89.5,1361.9 89.5,1318.0 148.6,1354.3"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="288.1,1411.5 160.4,1485.3 160.4,1441.4 288.1,1367.6"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="160.4,1485.3 80.6,1438.9 80.6,1395.0 160.4,1441.4"/>
+<polygon class="apt apt-11_04" data-apt="11.04" data-house="11" data-floor="EG" data-rooms="5.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="203.6,1128.3 284.0,1174.5 238.7,1201.9 238.4,1204.6 404.4,1300.5 299.0,1361.3 279.8,1350.5 270.0,1354.0 276.9,1364.2 288.1,1367.6 160.4,1441.4 80.6,1395.0 148.6,1354.3 89.5,1318.0 142.5,1285.4 119.1,1270.6 137.3,1259.3 137.5,1256.5 60.0,1211.1 203.6,1128.3"/>
+<polygon class="apt apt-11_10" data-apt="11.10" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="449.3,1368.6 421.7,1351.8 421.7,1307.9 449.3,1324.7"/>
+<polygon class="apt apt-11_10" data-apt="11.10" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="693.0,1424.7 599.8,1477.8 599.8,1433.9 693.0,1380.8"/>
+<polygon class="apt apt-11_10" data-apt="11.10" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="599.8,1477.8 590.1,1477.4 590.1,1433.6 599.8,1433.9"/>
+<polygon class="apt apt-11_10" data-apt="11.10" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="590.1,1477.4 536.4,1508.4 536.4,1464.5 590.1,1433.6"/>
+<polygon class="apt apt-11_10" data-apt="11.10" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="540.0,1513.0 449.4,1564.0 449.4,1520.1 540.0,1469.1"/>
+<polygon class="apt apt-11_10" data-apt="11.10" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="449.4,1564.0 250.9,1448.9 250.9,1405.1 449.4,1520.1"/>
+<polygon class="apt apt-11_10" data-apt="11.10" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="457.7,1285.7 497.0,1306.6 534.2,1288.1 693.0,1380.8 599.8,1433.9 590.1,1433.6 536.4,1464.5 540.0,1469.1 449.4,1520.1 250.9,1405.1 376.4,1332.6 384.8,1335.8 410.8,1321.4 433.7,1333.4 449.1,1327.8 449.3,1324.7 421.7,1307.9 457.7,1285.7"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="439.2,1277.7 406.9,1299.0 406.9,1255.1 439.2,1233.8"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="457.6,1329.6 430.1,1345.5 430.1,1301.6 457.6,1285.7"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="424.5,1341.6 419.5,1341.8 419.5,1297.9 424.5,1297.7"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="430.1,1345.5 424.5,1341.6 424.5,1297.7 430.1,1301.6"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="419.5,1341.8 391.6,1359.4 391.6,1315.5 419.5,1297.9"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="304.8,1322.0 299.0,1317.8 299.0,1273.9 304.8,1278.1"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="394.0,1365.0 376.4,1376.5 376.4,1332.6 394.0,1321.2"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="376.4,1376.5 250.9,1448.9 250.9,1405.1 376.4,1332.6"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="247.7,1448.1 160.4,1397.8 160.4,1353.9 247.7,1404.2"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="250.9,1448.9 247.7,1448.1 247.7,1404.2 250.9,1405.1"/>
+<polygon class="apt apt-11_11" data-apt="11.11" data-house="11" data-floor="2.OG" data-rooms="3.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="404.4,1213.0 439.2,1233.8 406.9,1255.1 457.6,1285.7 430.1,1301.6 424.5,1297.7 419.5,1297.9 391.6,1315.5 394.0,1321.2 376.4,1332.6 250.9,1405.1 247.7,1404.2 160.4,1353.9 288.1,1280.1 298.4,1282.7 304.8,1278.1 299.0,1273.9 404.4,1213.0"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="284.0,1174.7 238.7,1202.0 238.7,1158.1 284.0,1130.8"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="238.7,1202.0 238.4,1204.8 238.4,1160.9 238.7,1158.1"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="137.5,1256.7 60.0,1211.3 60.0,1167.4 137.5,1212.8"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="404.4,1300.7 299.0,1361.5 299.0,1317.6 404.4,1256.8"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="142.5,1285.6 119.1,1270.8 119.1,1226.9 142.5,1241.7"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="299.0,1361.5 279.8,1350.7 279.8,1306.8 299.0,1317.6"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="279.8,1350.7 270.0,1354.2 270.0,1310.3 279.8,1306.8"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="148.6,1354.4 89.5,1318.2 89.5,1274.3 148.6,1310.5"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="288.1,1367.8 160.4,1441.5 160.4,1397.6 288.1,1323.9"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="160.4,1441.5 80.6,1395.2 80.6,1351.3 160.4,1397.6"/>
+<polygon class="apt apt-11_08" data-apt="11.08" data-house="11" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="203.6,1084.6 284.0,1130.8 238.7,1158.1 238.4,1160.9 404.4,1256.8 299.0,1317.6 279.8,1306.8 270.0,1310.3 276.9,1320.5 288.1,1323.9 160.4,1397.6 80.6,1351.3 148.6,1310.5 89.5,1274.3 142.5,1241.7 119.1,1226.9 137.3,1215.5 137.5,1212.8 60.0,1167.4 203.6,1084.6"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="449.7,1322.3 442.6,1318.0 442.6,1274.1 449.7,1278.4"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="916.8,1451.1 772.9,1533.8 772.9,1489.9 916.8,1407.2"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="688.3,1486.0 668.0,1494.1 668.0,1450.2 688.3,1442.2"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="668.0,1494.1 641.3,1479.8 641.3,1435.9 668.0,1450.2"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="772.9,1533.8 688.3,1486.0 688.3,1442.2 772.9,1489.9"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="641.3,1479.8 584.8,1510.4 584.8,1466.5 641.3,1435.9"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="584.8,1510.4 522.1,1476.4 522.1,1432.5 584.8,1466.5"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="522.1,1476.4 447.9,1517.0 447.9,1473.2 522.1,1432.5"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="447.9,1517.0 272.8,1416.0 272.8,1372.1 447.9,1473.2"/>
+<polygon class="apt apt-11_13" data-apt="11.13" data-house="11" data-floor="AG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="494.5,1259.2 499.9,1259.4 534.2,1241.4 779.4,1382.9 784.5,1382.9 831.9,1356.7 916.8,1407.2 772.9,1489.9 688.3,1442.2 668.0,1450.2 641.3,1435.9 584.8,1466.5 522.1,1432.5 447.9,1473.2 272.8,1372.1 426.9,1283.2 435.7,1286.8 449.1,1281.1 449.7,1278.4 442.6,1274.1 481.4,1251.7 494.5,1259.2"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="284.0,1130.9 238.7,1158.3 238.7,1114.4 284.0,1087.0"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="238.7,1158.3 238.4,1161.1 238.4,1117.2 238.7,1114.4"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="137.5,1212.9 60.0,1167.6 60.0,1123.7 137.5,1169.0"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="404.4,1256.9 299.0,1317.8 299.0,1273.9 404.4,1213.0"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="142.5,1241.8 119.1,1227.0 119.1,1183.1 142.5,1197.9"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="299.0,1317.8 279.8,1306.9 279.8,1263.0 299.0,1273.9"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="279.8,1306.9 270.0,1310.4 270.0,1266.5 279.8,1263.0"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="148.6,1310.7 89.5,1274.4 89.5,1230.5 148.6,1266.8"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="288.1,1324.0 160.4,1397.8 160.4,1353.9 288.1,1280.1"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="160.4,1397.8 80.6,1351.4 80.6,1307.6 160.4,1353.9"/>
+<polygon class="apt apt-11_12" data-apt="11.12" data-house="11" data-floor="2.OG" data-rooms="4.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="203.6,1040.8 284.0,1087.0 238.7,1114.4 238.4,1117.2 404.4,1213.0 299.0,1273.9 279.8,1263.0 270.0,1266.5 276.9,1276.7 288.1,1280.1 160.4,1353.9 80.6,1307.6 148.6,1266.8 89.5,1230.5 142.5,1197.9 119.1,1183.1 137.3,1171.8 137.5,1169.0 60.0,1123.7 203.6,1040.8"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="285.5,1186.8 280.0,1180.9 280.0,1137.0 285.5,1142.9"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="438.7,1230.2 406.9,1252.3 406.9,1208.4 438.7,1186.3"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="273.6,1224.0 250.2,1207.3 250.2,1163.4 273.6,1180.1"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="481.4,1295.6 442.6,1318.0 442.6,1274.1 481.4,1251.7"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="424.2,1294.8 419.5,1295.1 419.5,1251.2 424.2,1250.9"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="430.0,1298.5 424.2,1294.8 424.2,1250.9 430.0,1254.6"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="419.5,1295.1 391.6,1312.8 391.6,1268.9 419.5,1251.2"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="442.6,1318.0 422.0,1306.1 422.0,1262.2 442.6,1274.1"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="206.3,1228.8 156.0,1257.9 156.0,1214.0 206.3,1184.9"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="394.0,1318.4 376.4,1330.0 376.4,1286.1 394.0,1274.5"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="147.8,1264.8 143.7,1259.6 143.7,1215.7 147.8,1220.9"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="426.9,1327.1 272.8,1416.0 272.8,1372.1 426.9,1283.2"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="272.8,1416.0 80.5,1304.2 80.5,1260.3 272.8,1372.1"/>
+<polygon class="apt apt-11_14" data-apt="11.14" data-house="11" data-floor="AG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="316.7,1115.8 438.7,1186.3 406.9,1208.4 481.4,1251.7 442.6,1274.1 422.0,1262.2 430.0,1254.6 424.2,1250.9 419.5,1251.2 391.6,1268.9 394.0,1274.5 376.4,1286.1 384.8,1289.1 410.8,1274.7 426.9,1283.2 272.8,1372.1 80.5,1260.3 147.8,1220.9 143.7,1215.7 203.4,1181.2 206.3,1184.9 156.0,1214.0 156.1,1217.1 163.1,1218.0 211.5,1190.4 232.9,1201.6 237.9,1201.3 273.6,1180.1 250.2,1163.4 285.5,1142.9 280.0,1137.0 316.7,1115.8"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="283.8,1084.0 237.9,1113.8 237.9,1069.9 283.8,1040.1"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="316.7,1159.7 280.0,1180.9 280.0,1137.0 316.7,1115.8"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="231.0,1152.7 225.6,1152.8 225.6,1108.9 231.0,1108.8"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="280.0,1180.9 231.0,1152.7 231.0,1108.8 280.0,1137.0"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="138.0,1166.9 60.0,1120.9 60.0,1077.0 138.0,1123.0"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="225.6,1152.8 153.8,1194.5 153.8,1150.6 225.6,1108.9"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="142.2,1196.3 119.1,1180.4 119.1,1136.5 142.2,1152.4"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="203.4,1225.1 143.7,1259.6 143.7,1215.7 203.4,1181.2"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="143.7,1259.6 89.5,1227.6 89.5,1183.7 143.7,1215.7"/>
+<polygon class="apt apt-11_15" data-apt="11.15" data-house="11" data-floor="AG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="203.6,994.2 283.8,1040.1 237.9,1069.9 316.7,1115.8 280.0,1137.0 231.0,1108.8 225.6,1108.9 153.8,1150.6 203.4,1181.2 143.7,1215.7 89.5,1183.7 142.2,1152.4 119.1,1136.5 138.0,1123.0 60.0,1077.0 203.6,994.2"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1000.7,1225.3 996.4,1229.8 996.4,1185.9 1000.7,1181.4"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1065.8,1261.7 1000.7,1225.3 1000.7,1181.4 1065.8,1217.9"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1075.5,1261.4 1065.8,1261.7 1065.8,1217.9 1075.5,1217.5"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1127.2,1291.3 1075.5,1261.4 1075.5,1217.5 1127.2,1247.4"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1025.8,1247.6 992.4,1267.4 992.4,1223.5 1025.8,1203.7"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1211.2,1345.7 1126.6,1296.9 1126.6,1253.0 1211.2,1301.8"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1087.7,1283.1 1052.7,1304.0 1052.7,1260.1 1087.7,1239.2"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1231.3,1336.0 1211.2,1345.7 1211.2,1301.8 1231.3,1292.1"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1015.2,1310.2 852.5,1216.3 852.5,1172.4 1015.2,1266.3"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1052.7,1304.0 1036.6,1298.2 1036.6,1254.4 1052.7,1260.1"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1036.6,1298.2 1015.2,1310.2 1015.2,1266.3 1036.6,1254.4"/>
+<polygon class="apt apt-13_04" data-apt="13.04" data-house="13" data-floor="EG" data-rooms="3.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="862.2,1166.8 915.0,1193.6 988.3,1151.8 1231.3,1292.1 1211.2,1301.8 1126.6,1253.0 1127.2,1247.4 1075.5,1217.5 1065.8,1217.9 1000.7,1181.4 996.4,1185.9 1025.8,1203.7 992.4,1223.5 992.4,1226.5 999.5,1227.6 1034.6,1208.4 1087.7,1239.2 1052.7,1260.1 1036.6,1254.4 1015.2,1266.3 852.5,1172.4 862.2,1166.8"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1000.7,1181.6 996.4,1186.0 996.4,1142.2 1000.7,1137.7"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1065.8,1218.0 1000.7,1181.6 1000.7,1137.7 1065.8,1174.1"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1075.5,1217.7 1065.8,1218.0 1065.8,1174.1 1075.5,1173.8"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1127.2,1247.6 1075.5,1217.7 1075.5,1173.8 1127.2,1203.7"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1025.8,1203.9 992.4,1223.7 992.4,1179.8 1025.8,1160.0"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1211.2,1301.9 1126.6,1253.1 1126.6,1209.3 1211.2,1258.0"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1087.7,1239.3 1052.7,1260.3 1052.7,1216.4 1087.7,1195.4"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1231.3,1292.3 1211.2,1301.9 1211.2,1258.0 1231.3,1248.4"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1015.2,1266.5 852.5,1172.5 852.5,1128.7 1015.2,1222.6"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1052.7,1260.3 1036.6,1254.5 1036.6,1210.6 1052.7,1216.4"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1036.6,1254.5 1015.2,1266.5 1015.2,1222.6 1036.6,1210.6"/>
+<polygon class="apt apt-13_08" data-apt="13.08" data-house="13" data-floor="1.OG" data-rooms="3.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="862.2,1123.1 915.0,1149.9 988.3,1108.1 1231.3,1248.4 1211.2,1258.0 1126.6,1209.3 1127.2,1203.7 1075.5,1173.8 1065.8,1174.1 1000.7,1137.7 996.4,1142.2 1025.8,1160.0 992.4,1179.8 992.4,1182.8 999.5,1183.9 1034.6,1164.6 1087.7,1195.4 1052.7,1216.4 1036.6,1210.6 1015.2,1222.6 852.5,1128.7 862.2,1123.1"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1355.2,1177.0 1212.4,1258.5 1212.4,1214.6 1355.2,1133.2"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1000.7,1137.9 996.4,1142.3 996.4,1098.4 1000.7,1094.0"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1065.8,1174.3 1000.7,1137.9 1000.7,1094.0 1065.8,1130.4"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1075.5,1174.0 1065.8,1174.3 1065.8,1130.4 1075.5,1130.1"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1127.2,1203.8 1075.5,1174.0 1075.5,1130.1 1127.2,1159.9"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1025.8,1160.1 992.4,1180.0 992.4,1136.1 1025.8,1116.2"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1212.4,1258.5 1126.6,1209.4 1126.6,1165.5 1212.4,1214.6"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1087.7,1195.6 1052.7,1216.5 1052.7,1172.7 1087.7,1151.7"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1015.2,1222.7 852.5,1128.8 852.5,1084.9 1015.2,1178.9"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1052.7,1216.5 1036.6,1210.8 1036.6,1166.9 1052.7,1172.7"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1036.6,1210.8 1015.2,1222.7 1015.2,1178.9 1036.6,1166.9"/>
+<polygon class="apt apt-13_12" data-apt="13.12" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="862.2,1079.3 916.1,1105.9 1112.2,992.8 1355.2,1133.2 1212.4,1214.6 1126.6,1165.5 1127.2,1159.9 1075.5,1130.1 1065.8,1130.4 1000.7,1094.0 996.4,1098.4 1025.8,1116.2 992.4,1136.1 992.4,1139.0 999.5,1140.2 1034.6,1120.9 1087.7,1151.7 1052.7,1172.7 1036.6,1166.9 1015.2,1178.9 852.5,1084.9 862.2,1079.3"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1250.6,1131.5 1249.9,1135.6 1249.9,1091.7 1250.6,1087.6"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1282.1,1151.4 1246.8,1173.0 1246.8,1129.1 1282.1,1107.5"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1417.0,1227.7 1213.2,1345.7 1213.2,1301.8 1417.0,1183.8"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1066.1,1261.3 971.6,1205.9 971.6,1162.0 1066.1,1217.4"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1075.8,1260.9 1066.1,1261.3 1066.1,1217.4 1075.8,1217.1"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1109.5,1280.2 1075.8,1260.9 1075.8,1217.1 1109.5,1236.3"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1128.0,1291.1 1109.5,1280.2 1109.5,1236.3 1128.0,1247.3"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1213.2,1345.7 1127.2,1296.6 1127.2,1252.7 1213.2,1301.8"/>
+<polygon class="apt apt-13_01" data-apt="13.01" data-house="13" data-floor="EG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1417.0,1183.8 1213.2,1301.8 1127.2,1252.7 1128.0,1247.3 1109.5,1236.3 1075.8,1217.1 1066.1,1217.4 971.6,1162.0 1138.1,1065.4 1174.0,1083.4 1210.4,1064.4 1250.6,1087.6 1249.9,1091.7 1256.8,1092.6 1282.1,1107.5 1246.8,1129.1 1247.1,1132.2 1260.3,1137.2 1297.5,1114.7 1417.0,1183.8"/>
+<polygon class="apt apt-13_05" data-apt="13.05" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1250.6,1087.8 1249.9,1091.8 1249.9,1047.9 1250.6,1043.9"/>
+<polygon class="apt apt-13_05" data-apt="13.05" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1282.1,1107.7 1246.8,1129.3 1246.8,1085.4 1282.1,1063.8"/>
+<polygon class="apt apt-13_05" data-apt="13.05" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1417.1,1183.9 1231.3,1292.3 1231.3,1248.4 1417.1,1140.0"/>
+<polygon class="apt apt-13_05" data-apt="13.05" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1231.3,1292.3 988.3,1152.0 988.3,1108.1 1231.3,1248.4"/>
+<polygon class="apt apt-13_05" data-apt="13.05" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="988.3,1108.1 1138.1,1021.6 1174.0,1039.6 1210.4,1020.7 1250.6,1043.9 1249.9,1047.9 1256.7,1048.8 1282.1,1063.8 1246.8,1085.4 1247.1,1088.5 1259.9,1093.6 1298.5,1073.0 1417.1,1140.0 1231.3,1248.4 988.3,1108.1"/>
+<polygon class="apt apt-13_09" data-apt="13.09" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1250.6,1044.1 1249.9,1048.1 1249.9,1004.2 1250.6,1000.2"/>
+<polygon class="apt apt-13_09" data-apt="13.09" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1282.1,1063.9 1246.8,1085.5 1246.8,1041.6 1282.1,1020.1"/>
+<polygon class="apt apt-13_09" data-apt="13.09" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1417.1,1140.2 1231.3,1248.5 1231.3,1204.7 1417.1,1096.3"/>
+<polygon class="apt apt-13_09" data-apt="13.09" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1231.3,1248.5 988.3,1108.2 988.3,1064.3 1231.3,1204.7"/>
+<polygon class="apt apt-13_09" data-apt="13.09" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="988.3,1064.3 1138.1,977.9 1174.0,995.9 1210.4,976.9 1250.6,1000.2 1249.9,1004.2 1256.7,1005.1 1282.1,1020.1 1246.8,1041.6 1247.1,1044.8 1259.9,1049.8 1298.5,1029.3 1417.1,1096.3 1231.3,1204.7 988.3,1064.3"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.7,1025.5 1472.1,1029.9 1472.1,986.0 1474.7,981.6"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1264.7,1075.3 1233.6,1054.1 1233.6,1010.3 1264.7,1031.4"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1620.8,1110.4 1417.1,1227.7 1417.1,1183.8 1620.8,1066.5"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1250.6,1131.5 1210.4,1108.3 1210.4,1064.4 1250.6,1087.6"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1264.0,1128.1 1250.6,1131.5 1250.6,1087.6 1264.0,1084.2"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1299.0,1150.6 1264.0,1128.1 1264.0,1084.2 1299.0,1106.7"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1417.1,1227.7 1297.5,1158.6 1297.5,1114.7 1417.1,1183.8"/>
+<polygon class="apt apt-13_02" data-apt="13.02" data-house="13" data-floor="EG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1377.2,927.3 1474.7,981.6 1472.1,986.0 1507.4,1006.6 1526.7,1017.4 1533.7,1015.7 1620.8,1066.5 1417.1,1183.8 1297.5,1114.7 1299.0,1106.7 1264.0,1084.2 1250.6,1087.6 1210.4,1064.4 1264.7,1031.4 1233.6,1010.3 1377.2,927.3"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.7,981.8 1472.1,986.2 1472.1,942.3 1474.7,937.9"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1264.7,1031.6 1233.6,1010.4 1233.6,966.5 1264.7,987.7"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1620.8,1066.8 1417.1,1183.9 1417.1,1140.0 1620.8,1022.9"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1403.6,1110.3 1351.6,1081.3 1351.6,1037.4 1403.6,1066.4"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1351.6,1081.3 1301.3,1108.0 1301.3,1064.1 1351.6,1037.4"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1250.6,1087.8 1210.5,1064.5 1210.5,1020.6 1250.6,1043.9"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1263.5,1084.3 1250.6,1087.8 1250.6,1043.9 1263.5,1040.4"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1301.3,1108.0 1263.5,1084.3 1263.5,1040.4 1301.3,1064.1"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1417.1,1183.9 1349.1,1144.6 1349.1,1100.7 1417.1,1140.0"/>
+<polygon class="apt apt-13_06" data-apt="13.06" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1210.5,1020.6 1264.7,987.7 1233.6,966.5 1379.7,883.0 1474.7,937.9 1472.1,942.3 1507.1,962.7 1526.3,973.6 1535.4,972.9 1620.8,1022.9 1417.1,1140.0 1349.1,1100.7 1403.6,1069.7 1403.6,1066.4 1351.6,1037.4 1301.3,1064.1 1263.5,1040.4 1250.6,1043.9 1210.5,1020.6"/>
+<polygon class="apt apt-13_13" data-apt="13.13" data-house="13" data-floor="AG" data-rooms="3.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1264.6,941.4 1233.6,920.0 1233.6,876.1 1264.6,897.5"/>
+<polygon class="apt apt-13_13" data-apt="13.13" data-house="13" data-floor="AG" data-rooms="3.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1574.3,1003.9 1355.2,1130.4 1355.2,1086.5 1574.3,960.0"/>
+<polygon class="apt apt-13_13" data-apt="13.13" data-house="13" data-floor="AG" data-rooms="3.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1355.2,1130.4 1112.2,990.1 1112.2,946.2 1355.2,1086.5"/>
+<polygon class="apt apt-13_13" data-apt="13.13" data-house="13" data-floor="AG" data-rooms="3.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1137.7,931.5 1174.0,949.2 1210.0,930.5 1264.6,897.5 1233.6,876.1 1331.3,819.7 1574.3,960.0 1355.2,1086.5 1112.2,946.2 1137.7,931.5"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.7,938.0 1472.1,942.5 1472.1,898.6 1474.7,894.2"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1264.7,987.8 1233.6,966.7 1233.6,922.8 1264.7,944.0"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1620.8,1023.0 1417.1,1140.2 1417.1,1096.3 1620.8,979.1"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1403.6,1066.6 1351.6,1037.5 1351.6,993.6 1403.6,1022.7"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1351.6,1037.5 1301.3,1064.2 1301.3,1020.3 1351.6,993.6"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1250.6,1044.1 1210.5,1020.7 1210.5,976.9 1250.6,1000.2"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1263.5,1040.6 1250.6,1044.1 1250.6,1000.2 1263.5,996.7"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1301.3,1064.2 1263.5,1040.6 1263.5,996.7 1301.3,1020.3"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1417.1,1140.2 1349.1,1100.9 1349.1,1057.0 1417.1,1096.3"/>
+<polygon class="apt apt-13_10" data-apt="13.10" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1210.5,976.9 1264.7,944.0 1233.6,922.8 1379.7,839.3 1474.7,894.2 1472.1,898.6 1507.1,919.0 1526.3,929.8 1535.4,929.2 1620.8,979.1 1417.1,1096.3 1349.1,1057.0 1403.6,1026.0 1403.6,1022.7 1351.6,993.6 1301.3,1020.3 1263.5,996.7 1250.6,1000.2 1210.5,976.9"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.1,915.1 1427.4,884.8 1427.4,840.9 1474.1,871.2"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1642.9,928.6 1567.8,973.2 1567.8,929.3 1642.9,884.7"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1580.1,984.1 1555.4,999.4 1555.4,955.5 1580.1,940.2"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.7,1025.5 1379.7,970.7 1379.7,926.8 1474.7,981.6"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1608.4,1032.0 1549.4,1068.3 1549.4,1024.4 1608.4,988.1"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1490.7,1032.3 1474.7,1025.5 1474.7,981.6 1490.7,988.4"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1533.7,1059.6 1490.7,1032.3 1490.7,988.4 1533.7,1015.7"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1620.2,1109.5 1533.7,1059.6 1533.7,1015.7 1620.2,1065.7"/>
+<polygon class="apt apt-13_03" data-apt="13.03" data-house="13" data-floor="EG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1379.7,926.8 1474.1,871.2 1427.4,840.9 1498.3,801.1 1642.9,884.7 1567.8,929.3 1580.1,940.2 1555.4,955.5 1608.4,988.1 1549.4,1024.4 1620.2,1065.7 1533.7,1015.7 1490.7,988.4 1474.7,981.6 1379.7,926.8"/>
+<polygon class="apt apt-13_07" data-apt="13.07" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.1,871.4 1427.4,841.0 1427.4,797.1 1474.1,827.5"/>
+<polygon class="apt apt-13_07" data-apt="13.07" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1643.5,885.2 1568.4,929.8 1568.4,885.9 1643.5,841.3"/>
+<polygon class="apt apt-13_07" data-apt="13.07" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1579.6,940.9 1491.6,988.2 1491.6,944.3 1579.6,897.0"/>
+<polygon class="apt apt-13_07" data-apt="13.07" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.7,981.8 1379.7,926.9 1379.7,883.0 1474.7,937.9"/>
+<polygon class="apt apt-13_07" data-apt="13.07" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1491.6,988.2 1474.7,981.8 1474.7,937.9 1491.6,944.3"/>
+<polygon class="apt apt-13_07" data-apt="13.07" data-house="13" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1379.7,883.0 1474.1,827.5 1427.4,797.1 1496.3,757.2 1643.5,841.3 1568.4,885.9 1579.6,897.0 1491.6,944.3 1474.7,937.9 1379.7,883.0"/>
+<polygon class="apt apt-13_11" data-apt="13.11" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.1,827.6 1427.4,797.3 1427.4,753.4 1474.1,783.7"/>
+<polygon class="apt apt-13_11" data-apt="13.11" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1643.5,841.5 1568.4,886.1 1568.4,842.2 1643.5,797.6"/>
+<polygon class="apt apt-13_11" data-apt="13.11" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1579.6,897.2 1491.6,944.4 1491.6,900.5 1579.6,853.3"/>
+<polygon class="apt apt-13_11" data-apt="13.11" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.7,938.0 1379.7,883.2 1379.7,839.3 1474.7,894.2"/>
+<polygon class="apt apt-13_11" data-apt="13.11" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1491.6,944.4 1474.7,938.0 1474.7,894.2 1491.6,900.5"/>
+<polygon class="apt apt-13_11" data-apt="13.11" data-house="13" data-floor="2.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1379.7,839.3 1474.1,783.7 1427.4,753.4 1496.3,713.5 1643.5,797.6 1568.4,842.2 1579.6,853.3 1491.6,900.5 1474.7,894.2 1379.7,839.3"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1474.1,781.0 1427.4,750.6 1427.4,706.7 1474.1,737.1"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1643.1,794.4 1568.4,839.4 1568.4,795.5 1643.1,750.5"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1579.4,850.7 1492.4,897.6 1492.4,853.7 1579.4,806.8"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1492.4,897.6 1477.7,891.3 1477.7,847.4 1492.4,853.7"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1477.7,891.3 1471.3,893.9 1471.3,850.0 1477.7,847.4"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1574.3,1003.9 1331.3,863.6 1331.3,819.7 1574.3,960.0"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1620.5,975.6 1574.3,1003.9 1574.3,960.0 1620.5,931.7"/>
+<polygon class="apt apt-13_14" data-apt="13.14" data-house="13" data-floor="AG" data-rooms="4.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1331.3,819.7 1474.1,737.1 1427.4,706.7 1496.3,666.8 1643.1,750.5 1568.4,795.5 1579.4,806.8 1492.4,853.7 1477.7,847.4 1471.3,850.0 1525.7,882.9 1535.4,882.6 1620.5,931.7 1574.3,960.0 1331.3,819.7"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2538.1,648.1 2394.2,732.1 2394.2,688.2 2538.1,604.2"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2256.3,630.6 2238.4,619.9 2238.4,576.1 2256.3,586.8"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2308.6,684.1 2289.0,692.4 2289.0,648.5 2308.6,640.2"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2394.2,732.1 2308.6,684.1 2308.6,640.2 2394.2,688.2"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2289.0,692.4 2260.4,678.2 2260.4,634.4 2289.0,648.5"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2260.4,678.2 2205.8,708.7 2205.8,664.8 2260.4,634.4"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2205.8,708.7 2143.9,674.5 2143.9,630.6 2205.8,664.8"/>
+<polygon class="apt apt-15_01" data-apt="15.01" data-house="15" data-floor="EG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2314.2,532.5 2401.7,581.5 2453.3,555.1 2538.1,604.2 2394.2,688.2 2308.6,640.2 2289.0,648.5 2260.4,634.4 2205.8,664.8 2143.9,630.6 2204.4,597.2 2220.9,605.1 2226.0,604.8 2256.3,586.8 2238.4,576.1 2314.2,532.5"/>
+<polygon class="apt apt-15_02" data-apt="15.02" data-house="15" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2056.8,509.8 2045.3,501.6 2045.3,457.7 2056.8,465.9"/>
+<polygon class="apt apt-15_02" data-apt="15.02" data-house="15" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2314.0,576.3 2220.8,629.4 2220.8,585.5 2314.0,532.4"/>
+<polygon class="apt apt-15_02" data-apt="15.02" data-house="15" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2220.8,629.4 2211.0,629.0 2211.0,585.1 2220.8,585.5"/>
+<polygon class="apt apt-15_02" data-apt="15.02" data-house="15" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2211.0,629.0 2157.4,660.0 2157.4,616.1 2211.0,585.1"/>
+<polygon class="apt apt-15_02" data-apt="15.02" data-house="15" data-floor="EG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2161.0,664.6 2070.3,715.6 2070.3,671.7 2161.0,620.7"/>
+<polygon class="apt apt-15_02" data-apt="15.02" data-house="15" data-floor="EG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2070.3,715.6 1871.9,600.5 1871.9,556.6 2070.3,671.7"/>
+<polygon class="apt apt-15_02" data-apt="15.02" data-house="15" data-floor="EG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2078.7,437.3 2118.0,458.2 2155.2,439.6 2314.0,532.4 2220.8,585.5 2211.0,585.1 2157.4,616.1 2161.0,620.7 2070.3,671.7 1871.9,556.6 1997.3,484.2 2005.4,487.5 2030.6,473.2 2039.5,475.2 2055.7,469.9 2056.8,465.9 2045.3,457.7 2078.7,437.3"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2538.1,604.3 2394.2,688.3 2394.2,644.4 2538.1,560.4"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2256.3,586.9 2238.4,576.2 2238.4,532.3 2256.3,543.0"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2308.6,640.3 2289.0,648.6 2289.0,604.8 2308.6,596.5"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2394.2,688.3 2308.6,640.3 2308.6,596.5 2394.2,644.4"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2289.0,648.6 2260.4,634.5 2260.4,590.6 2289.0,604.8"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2260.4,634.5 2205.8,664.9 2205.8,621.1 2260.4,590.6"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2205.8,664.9 2143.9,630.8 2143.9,586.9 2205.8,621.1"/>
+<polygon class="apt apt-15_05" data-apt="15.05" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2314.2,488.8 2401.7,537.8 2453.3,511.3 2538.1,560.4 2394.2,644.4 2308.6,596.5 2289.0,604.8 2260.4,590.6 2205.8,621.1 2143.9,586.9 2204.4,553.5 2220.9,561.3 2226.0,561.0 2256.3,543.0 2238.4,532.3 2314.2,488.8"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2060.2,429.3 2027.9,450.6 2027.9,406.7 2060.2,385.4"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2078.6,481.2 2051.0,497.1 2051.0,453.2 2078.6,437.3"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2045.5,493.2 2040.5,493.4 2040.5,449.5 2045.5,449.3"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2051.0,497.1 2045.5,493.2 2045.5,449.3 2051.0,453.2"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1932.8,470.1 1927.2,465.2 1927.2,421.3 1932.8,426.2"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2040.5,493.4 2012.6,511.0 2012.6,467.1 2040.5,449.5"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2015.0,516.6 1997.3,528.1 1997.3,484.2 2015.0,472.7"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1997.3,528.1 1871.9,600.5 1871.9,556.6 1997.3,484.2"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1868.6,599.7 1781.4,549.4 1781.4,505.5 1868.6,555.8"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1871.9,600.5 1868.6,599.7 1868.6,555.8 1871.9,556.6"/>
+<polygon class="apt apt-15_03" data-apt="15.03" data-house="15" data-floor="EG" data-rooms="2.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2025.4,364.6 2060.2,385.4 2027.9,406.7 2078.6,437.3 2051.0,453.2 2045.5,449.3 2040.5,449.5 2012.6,467.1 2015.0,472.7 1997.3,484.2 1871.9,556.6 1868.6,555.8 1781.4,505.5 1909.1,431.7 1919.4,434.3 1932.8,426.2 1927.2,421.3 2025.4,364.6"/>
+<polygon class="apt apt-15_06" data-apt="15.06" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2056.8,466.0 2045.3,457.9 2045.3,414.0 2056.8,422.1"/>
+<polygon class="apt apt-15_06" data-apt="15.06" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2314.0,532.5 2220.8,585.6 2220.8,541.7 2314.0,488.6"/>
+<polygon class="apt apt-15_06" data-apt="15.06" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2220.8,585.6 2211.0,585.3 2211.0,541.4 2220.8,541.7"/>
+<polygon class="apt apt-15_06" data-apt="15.06" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2211.0,585.3 2157.4,616.3 2157.4,572.4 2211.0,541.4"/>
+<polygon class="apt apt-15_06" data-apt="15.06" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2161.0,620.9 2070.3,671.8 2070.3,627.9 2161.0,577.0"/>
+<polygon class="apt apt-15_06" data-apt="15.06" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2070.3,671.8 1871.9,556.8 1871.9,512.9 2070.3,627.9"/>
+<polygon class="apt apt-15_06" data-apt="15.06" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2078.7,393.6 2118.0,414.4 2155.2,395.9 2314.0,488.6 2220.8,541.7 2211.0,541.4 2157.4,572.4 2161.0,577.0 2070.3,627.9 1871.9,512.9 1997.3,440.5 2005.4,443.7 2030.6,429.5 2039.5,431.4 2055.7,426.2 2056.8,422.1 2045.3,414.0 2078.7,393.6"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2538.1,560.6 2394.2,644.6 2394.2,600.7 2538.1,516.7"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2256.3,543.2 2238.4,532.5 2238.4,488.6 2256.3,499.3"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2308.6,596.6 2289.0,604.9 2289.0,561.0 2308.6,552.7"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2394.2,644.6 2308.6,596.6 2308.6,552.7 2394.2,600.7"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2289.0,604.9 2260.4,590.8 2260.4,546.9 2289.0,561.0"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2260.4,590.8 2205.8,621.2 2205.8,577.3 2260.4,546.9"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2205.8,621.2 2143.9,587.0 2143.9,543.1 2205.8,577.3"/>
+<polygon class="apt apt-15_09" data-apt="15.09" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2314.2,445.0 2401.7,494.1 2453.3,467.6 2538.1,516.7 2394.2,600.7 2308.6,552.7 2289.0,561.0 2260.4,546.9 2205.8,577.3 2143.9,543.1 2204.4,509.7 2220.9,517.6 2226.0,517.3 2256.3,499.3 2238.4,488.6 2314.2,445.0"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2060.2,385.5 2027.9,406.8 2027.9,362.9 2060.2,341.6"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2078.6,437.5 2051.0,453.4 2051.0,409.5 2078.6,393.6"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2045.5,449.4 2040.5,449.6 2040.5,405.8 2045.5,405.5"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2051.0,453.4 2045.5,449.4 2045.5,405.5 2051.0,409.5"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1932.8,426.4 1927.2,421.4 1927.2,377.6 1932.8,382.5"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2040.5,449.6 2012.6,467.3 2012.6,423.4 2040.5,405.8"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2015.0,472.9 1997.3,484.4 1997.3,440.5 2015.0,429.0"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1997.3,484.4 1871.9,556.8 1871.9,512.9 1997.3,440.5"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1868.6,555.9 1781.4,505.6 1781.4,461.8 1868.6,512.0"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1871.9,556.8 1868.6,555.9 1868.6,512.0 1871.9,512.9"/>
+<polygon class="apt apt-15_07" data-apt="15.07" data-house="15" data-floor="1.OG" data-rooms="3.5" fill="#c4c0b8" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2025.4,320.9 2060.2,341.6 2027.9,362.9 2078.6,393.6 2051.0,409.5 2045.5,405.5 2040.5,405.8 2012.6,423.4 2015.0,429.0 1997.3,440.5 1871.9,512.9 1868.6,512.0 1781.4,461.8 1909.1,388.0 1919.4,390.6 1932.8,382.5 1927.2,377.6 2025.4,320.9"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1905.0,282.5 1859.6,309.9 1859.6,266.0 1905.0,238.6"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1859.6,309.9 1859.4,312.7 1859.4,268.8 1859.6,266.0"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1758.5,364.5 1681.0,319.2 1681.0,275.3 1758.5,320.6"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2025.4,408.5 1927.2,465.2 1927.2,421.3 2025.4,364.6"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1763.5,393.4 1740.1,378.6 1740.1,334.7 1763.5,349.5"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1927.2,465.2 1907.3,454.2 1907.3,410.3 1927.2,421.3"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1907.3,454.2 1891.0,462.0 1891.0,418.1 1907.3,410.3"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1769.5,462.3 1710.5,426.0 1710.5,382.1 1769.5,418.4"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1909.1,475.6 1781.4,549.4 1781.4,505.5 1909.1,431.7"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1781.4,549.4 1701.6,503.0 1701.6,459.2 1781.4,505.5"/>
+<polygon class="apt apt-15_04" data-apt="15.04" data-house="15" data-floor="EG" data-rooms="5.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1824.5,192.4 1905.0,238.6 1859.6,266.0 1859.4,268.8 2025.4,364.6 1927.2,421.3 1907.3,410.3 1891.0,418.1 1898.0,428.3 1909.1,431.7 1781.4,505.5 1701.6,459.2 1769.5,418.4 1710.5,382.1 1763.5,349.5 1740.1,334.7 1758.2,323.4 1758.5,320.6 1681.0,275.3 1824.5,192.4"/>
+<polygon class="apt apt-15_10" data-apt="15.10" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2056.8,422.3 2045.3,414.1 2045.3,370.2 2056.8,378.4"/>
+<polygon class="apt apt-15_10" data-apt="15.10" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2314.0,488.8 2220.8,541.9 2220.8,498.0 2314.0,444.9"/>
+<polygon class="apt apt-15_10" data-apt="15.10" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2220.8,541.9 2211.0,541.6 2211.0,497.7 2220.8,498.0"/>
+<polygon class="apt apt-15_10" data-apt="15.10" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2211.0,541.6 2157.4,572.5 2157.4,528.6 2211.0,497.7"/>
+<polygon class="apt apt-15_10" data-apt="15.10" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2161.0,577.1 2070.3,628.1 2070.3,584.2 2161.0,533.2"/>
+<polygon class="apt apt-15_10" data-apt="15.10" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2070.3,628.1 1871.9,513.1 1871.9,469.2 2070.3,584.2"/>
+<polygon class="apt apt-15_10" data-apt="15.10" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#c4c0b8" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2078.7,349.9 2118.0,370.7 2155.2,352.2 2314.0,444.9 2220.8,498.0 2211.0,497.7 2157.4,528.6 2161.0,533.2 2070.3,584.2 1871.9,469.2 1997.3,396.7 2005.4,400.0 2030.6,385.8 2039.5,387.7 2055.7,382.4 2056.8,378.4 2045.3,370.2 2078.7,349.9"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2537.7,516.9 2393.9,599.6 2393.9,555.8 2537.7,473.0"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2309.3,551.9 2289.0,559.9 2289.0,516.0 2309.3,508.0"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2289.0,559.9 2262.3,545.6 2262.3,501.8 2289.0,516.0"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2393.9,599.6 2309.3,551.9 2309.3,508.0 2393.9,555.8"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2262.3,545.6 2205.8,576.2 2205.8,532.4 2262.3,501.8"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2205.8,576.2 2143.0,542.2 2143.0,498.3 2205.8,532.4"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#8a6830" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2143.0,542.2 2068.9,582.9 2068.9,539.0 2143.0,498.3"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#a07840" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2068.9,582.9 1893.8,481.8 1893.8,438.0 2068.9,539.0"/>
+<polygon class="apt apt-15_13" data-apt="15.13" data-house="15" data-floor="AG" data-rooms="4.5" fill="#c8aa72" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2115.5,325.1 2120.9,325.2 2155.2,307.2 2400.3,448.7 2405.5,448.7 2452.8,422.5 2537.7,473.0 2393.9,555.8 2309.3,508.0 2289.0,516.0 2262.3,501.8 2205.8,532.4 2143.0,498.3 2068.9,539.0 1893.8,438.0 2102.4,317.5 2115.5,325.1"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2060.2,341.8 2027.9,363.1 2027.9,319.2 2060.2,297.9"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2078.6,393.7 2051.0,409.6 2051.0,365.7 2078.6,349.8"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2045.5,405.7 2040.5,405.9 2040.5,362.0 2045.5,361.8"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2051.0,409.6 2045.5,405.7 2045.5,361.8 2051.0,365.7"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1932.8,382.6 1927.2,377.7 1927.2,333.8 1932.8,338.7"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2040.5,405.9 2012.6,423.6 2012.6,379.7 2040.5,362.0"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2015.0,429.2 1997.3,440.6 1997.3,396.7 2015.0,385.3"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1997.3,440.6 1871.9,513.1 1871.9,469.2 1997.3,396.7"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1868.6,512.2 1781.4,461.9 1781.4,418.0 1868.6,468.3"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1871.9,513.1 1868.6,512.2 1868.6,468.3 1871.9,469.2"/>
+<polygon class="apt apt-15_11" data-apt="15.11" data-house="15" data-floor="2.OG" data-rooms="3.5" fill="#c4c0b8" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2025.4,277.2 2060.2,297.9 2027.9,319.2 2078.6,349.8 2051.0,365.7 2045.5,361.8 2040.5,362.0 2012.6,379.7 2015.0,385.3 1997.3,396.7 1871.9,469.2 1868.6,468.3 1781.4,418.0 1909.1,344.3 1919.4,346.9 1932.8,338.7 1927.2,333.8 2025.4,277.2"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1905.0,238.8 1859.6,266.1 1859.6,222.2 1905.0,194.9"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1859.6,266.1 1859.4,268.9 1859.4,225.0 1859.6,222.2"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1758.5,320.8 1681.0,275.4 1681.0,231.5 1758.5,276.9"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2025.4,364.8 1927.2,421.4 1927.2,377.6 2025.4,320.9"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1763.5,349.7 1740.1,334.9 1740.1,291.0 1763.5,305.8"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1927.2,421.4 1907.3,410.5 1907.3,366.6 1927.2,377.6"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1907.3,410.5 1891.0,418.3 1891.0,374.4 1907.3,366.6"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1769.5,418.5 1710.5,382.3 1710.5,338.4 1769.5,374.6"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#888480" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1909.1,431.9 1781.4,505.6 1781.4,461.8 1909.1,388.0"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#a8a4a0" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1781.4,505.6 1701.6,459.3 1701.6,415.4 1781.4,461.8"/>
+<polygon class="apt apt-15_08" data-apt="15.08" data-house="15" data-floor="1.OG" data-rooms="4.5" fill="#c4c0b8" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1824.5,148.7 1905.0,194.9 1859.6,222.2 1859.4,225.0 2025.4,320.9 1927.2,377.6 1907.3,366.6 1891.0,374.4 1898.0,384.6 1909.1,388.0 1781.4,461.8 1701.6,415.4 1769.5,374.6 1710.5,338.4 1763.5,305.8 1740.1,291.0 1758.2,279.7 1758.5,276.9 1681.0,231.5 1824.5,148.7"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1905.0,195.1 1859.6,222.4 1859.6,178.5 1905.0,151.2"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1859.6,222.4 1859.4,225.2 1859.4,181.3 1859.6,178.5"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1758.5,277.0 1681.0,231.7 1681.0,187.8 1758.5,233.1"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2025.4,321.1 1927.2,377.7 1927.2,333.8 2025.4,277.2"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1763.5,305.9 1740.1,291.1 1740.1,247.2 1763.5,262.0"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1927.2,377.7 1907.3,366.7 1907.3,322.8 1927.2,333.8"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1907.3,366.7 1891.0,374.5 1891.0,330.7 1907.3,322.8"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1769.5,374.8 1710.5,338.5 1710.5,294.7 1769.5,330.9"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1909.1,388.2 1781.4,461.9 1781.4,418.0 1909.1,344.3"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1781.4,461.9 1701.6,415.6 1701.6,371.7 1781.4,418.0"/>
+<polygon class="apt apt-15_12" data-apt="15.12" data-house="15" data-floor="2.OG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1824.5,105.0 1905.0,151.2 1859.6,178.5 1859.4,181.3 2025.4,277.2 1927.2,333.8 1907.3,322.8 1891.0,330.7 1898.0,340.8 1909.1,344.3 1781.4,418.0 1701.6,371.7 1769.5,330.9 1710.5,294.7 1763.5,262.0 1740.1,247.2 1758.2,235.9 1758.5,233.1 1681.0,187.8 1824.5,105.0"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1906.5,252.6 1900.9,246.7 1900.9,202.8 1906.5,208.7"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2059.7,296.0 2027.9,318.1 2027.9,274.2 2059.7,252.1"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1894.5,289.8 1871.2,273.1 1871.2,229.2 1894.5,245.9"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1827.3,294.6 1777.0,323.7 1777.0,279.8 1827.3,250.7"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1768.8,330.6 1764.7,325.4 1764.7,281.5 1768.8,286.7"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="2102.4,361.4 1893.8,481.8 1893.8,438.0 2102.4,317.5"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1893.8,481.8 1701.5,370.0 1701.5,326.1 1893.8,438.0"/>
+<polygon class="apt apt-15_14" data-apt="15.14" data-house="15" data-floor="AG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1937.7,181.6 2059.7,252.1 2027.9,274.2 2102.4,317.5 1893.8,438.0 1701.5,326.1 1768.8,286.7 1764.7,281.5 1824.4,247.0 1827.3,250.7 1777.0,279.8 1777.1,282.9 1784.1,283.8 1832.5,256.2 1853.9,267.4 1858.9,267.1 1894.5,245.9 1871.2,229.2 1906.5,208.7 1900.9,202.8 1937.7,181.6"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1904.8,149.8 1858.9,179.6 1858.9,135.7 1904.8,105.9"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1937.7,225.5 1900.9,246.7 1900.9,202.8 1937.7,181.6"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1852.0,218.5 1846.6,218.6 1846.6,174.7 1852.0,174.6"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1900.9,246.7 1852.0,218.5 1852.0,174.6 1900.9,202.8"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1759.0,232.7 1681.0,186.7 1681.0,142.8 1759.0,188.8"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1846.6,218.6 1774.8,260.3 1774.8,216.4 1846.6,174.7"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1763.2,262.1 1740.1,246.2 1740.1,202.3 1763.2,218.2"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#4a6e47" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1824.4,290.9 1764.7,325.4 1764.7,281.5 1824.4,247.0"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#6e9a6b" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1764.7,325.4 1710.5,293.4 1710.5,249.5 1764.7,281.5"/>
+<polygon class="apt apt-15_15" data-apt="15.15" data-house="15" data-floor="AG" data-rooms="4.5" fill="#8aaa87" stroke="rgba(248,246,241,0.7)" stroke-width="0.8" points="1824.5,60.0 1904.8,105.9 1858.9,135.7 1937.7,181.6 1900.9,202.8 1852.0,174.6 1846.6,174.7 1774.8,216.4 1824.4,247.0 1764.7,281.5 1710.5,249.5 1763.2,218.2 1740.1,202.3 1759.0,188.8 1681.0,142.8 1824.5,60.0"/>
+      </svg>
+    </div>
+    <div class="tt" id="tt">
+      <div class="tt-nr" id="tt-nr"></div>
+      <div class="tt-nm" id="tt-nm"></div>
+      <div class="tt-or" id="tt-or"></div>
+      <div class="tt-st" id="tt-st"></div>
+      <div class="tt-gr">
+        <div class="tt-it"><label>Wohnfläche</label><value id="tt-sz"></value></div>
+        <div class="tt-it"><label>Zimmer</label><value id="tt-rm"></value></div>
+        <div class="tt-it"><label>Etage</label><value id="tt-fl"></value></div>
+        <div class="tt-it"><label>Aussenbereich</label><value id="tt-ot"></value></div>
+      </div>
+      <div class="tt-miete">
+        <div class="tt-mi"><label>Nettomiete</label><value id="tt-nt"></value></div>
+        <div class="tt-mi"><label>Nebenkosten</label><value id="tt-nk"></value></div>
+        <div class="tt-mi"><label>Bruttomiete</label><value id="tt-br"></value></div>
+      </div>
+      <button class="tt-bt" id="tt-bt" onclick="doC()">Besichtigung anfragen</button>
+    </div>
+    <div class="fl">
+      <div class="fl-lbl">Etage einblenden</div>
+      <div class="fli on" onclick="ffl('all',this)"><div class="fld"></div>Alle</div>
+      <div class="fli" onclick="ffl('AG',this)"><div class="fld"></div>Attika</div>
+      <div class="fli" onclick="ffl('2.OG',this)"><div class="fld"></div>2. OG</div>
+      <div class="fli" onclick="ffl('1.OG',this)"><div class="fld"></div>1. OG</div>
+      <div class="fli" onclick="ffl('EG',this)"><div class="fld"></div>Erdgeschoss</div>
+    </div>
+    <div class="zc">
+      <button class="zb" onclick="zm(1.2)">+</button>
+      <button class="zb" onclick="zm(0.83)">−</button>
+      <button class="zb" onclick="rz()" style="font-size:10px">⊙</button>
+    </div>
+    <div class="hint">Scrollen = Zoom · Ziehen = Pan · Hover = Details</div>
+  </div>
+</div>
+<script>
+const A={"11.01": {"house": "11", "floor": "EG", "rooms": "4.5", "size": 117, "orient": "Süd", "netto": 2130, "nk": 200, "brutto": 2330, "outdoor": "Sitzplatz", "outdoor_m": 25, "status": "reserviert"}, "11.02": {"house": "11", "floor": "EG", "rooms": "4.5", "size": 116, "orient": "Mitte", "netto": 2070, "nk": 200, "brutto": 2270, "outdoor": "Sitzplatz", "outdoor_m": 22, "status": "frei"}, "11.03": {"house": "11", "floor": "EG", "rooms": "2.5", "size": 71, "orient": "Mitte", "netto": 1480, "nk": 170, "brutto": 1650, "outdoor": "Sitzplatz", "outdoor_m": 18, "status": "frei"}, "11.04": {"house": "11", "floor": "EG", "rooms": "5.5", "size": 138, "orient": "Nord", "netto": 2580, "nk": 220, "brutto": 2800, "outdoor": "Sitzplatz", "outdoor_m": 28, "status": "reserviert"}, "11.05": {"house": "11", "floor": "1.OG", "rooms": "4.5", "size": 117, "orient": "Süd", "netto": 1990, "nk": 200, "brutto": 2190, "outdoor": "Terrasse", "outdoor_m": 24, "status": "frei"}, "11.06": {"house": "11", "floor": "1.OG", "rooms": "4.5", "size": 116, "orient": "Mitte", "netto": 1950, "nk": 200, "brutto": 2150, "outdoor": "Terrasse", "outdoor_m": 22, "status": "frei"}, "11.07": {"house": "11", "floor": "1.OG", "rooms": "3.5", "size": 97, "orient": "Mitte", "netto": 1790, "nk": 180, "brutto": 1970, "outdoor": "Terrasse", "outdoor_m": 20, "status": "frei"}, "11.08": {"house": "11", "floor": "1.OG", "rooms": "4.5", "size": 112, "orient": "Nord", "netto": 2170, "nk": 200, "brutto": 2370, "outdoor": "Terrasse", "outdoor_m": 22, "status": "frei"}, "11.09": {"house": "11", "floor": "2.OG", "rooms": "4.5", "size": 117, "orient": "Süd", "netto": 2170, "nk": 200, "brutto": 2370, "outdoor": "Terrasse", "outdoor_m": 24, "status": "reserviert"}, "11.10": {"house": "11", "floor": "2.OG", "rooms": "4.5", "size": 116, "orient": "Mitte", "netto": 2070, "nk": 200, "brutto": 2270, "outdoor": "Terrasse", "outdoor_m": 22, "status": "frei"}, "11.11": {"house": "11", "floor": "2.OG", "rooms": "3.5", "size": 97, "orient": "Mitte", "netto": 1870, "nk": 180, "brutto": 2050, "outdoor": "Terrasse", "outdoor_m": 20, "status": "reserviert"}, "11.12": {"house": "11", "floor": "2.OG", "rooms": "4.5", "size": 112, "orient": "Nord", "netto": 2190, "nk": 200, "brutto": 2390, "outdoor": "Terrasse", "outdoor_m": 22, "status": "reserviert"}, "11.13": {"house": "11", "floor": "AG", "rooms": "4.5", "size": 121, "orient": "Süd", "netto": 2390, "nk": 200, "brutto": 2590, "outdoor": "Dachterrasse", "outdoor_m": 38, "status": "frei"}, "11.14": {"house": "11", "floor": "AG", "rooms": "4.5", "size": 114, "orient": "Mitte", "netto": 2250, "nk": 200, "brutto": 2450, "outdoor": "Dachterrasse", "outdoor_m": 32, "status": "frei"}, "11.15": {"house": "11", "floor": "AG", "rooms": "4.5", "size": 122, "orient": "Nord", "netto": 2350, "nk": 200, "brutto": 2550, "outdoor": "Dachterrasse", "outdoor_m": 35, "status": "frei"}, "13.01": {"house": "13", "floor": "EG", "rooms": "4.5", "size": 119, "orient": "West", "netto": 2200, "nk": 200, "brutto": 2400, "outdoor": "Sitzplatz", "outdoor_m": 30, "status": "frei"}, "13.02": {"house": "13", "floor": "EG", "rooms": "4.5", "size": 118, "orient": "Mitte", "netto": 2110, "nk": 200, "brutto": 2310, "outdoor": "Sitzplatz", "outdoor_m": 28, "status": "frei"}, "13.03": {"house": "13", "floor": "EG", "rooms": "4.5", "size": 110, "orient": "Ost", "netto": 2040, "nk": 200, "brutto": 2240, "outdoor": "Sitzplatz", "outdoor_m": 24, "status": "frei"}, "13.04": {"house": "13", "floor": "1.OG", "rooms": "3.5", "size": 95, "orient": "West", "netto": 1460, "nk": 200, "brutto": 1660, "outdoor": "Terrasse", "outdoor_m": 20, "status": "frei"}, "13.05": {"house": "13", "floor": "1.OG", "rooms": "4.5", "size": 119, "orient": "Mitte", "netto": 2150, "nk": 200, "brutto": 2350, "outdoor": "Terrasse", "outdoor_m": 28, "status": "frei"}, "13.06": {"house": "13", "floor": "1.OG", "rooms": "4.5", "size": 118, "orient": "Mitte", "netto": 2110, "nk": 200, "brutto": 2310, "outdoor": "Terrasse", "outdoor_m": 28, "status": "frei"}, "13.07": {"house": "13", "floor": "1.OG", "rooms": "4.5", "size": 110, "orient": "Ost", "netto": 2020, "nk": 200, "brutto": 2220, "outdoor": "Terrasse", "outdoor_m": 24, "status": "frei"}, "13.08": {"house": "13", "floor": "2.OG", "rooms": "3.5", "size": 95, "orient": "West", "netto": 1800, "nk": 200, "brutto": 2000, "outdoor": "Terrasse", "outdoor_m": 20, "status": "frei"}, "13.09": {"house": "13", "floor": "2.OG", "rooms": "4.5", "size": 119, "orient": "Mitte", "netto": 2180, "nk": 200, "brutto": 2380, "outdoor": "Terrasse", "outdoor_m": 28, "status": "frei"}, "13.10": {"house": "13", "floor": "2.OG", "rooms": "4.5", "size": 118, "orient": "Mitte", "netto": 2140, "nk": 200, "brutto": 2340, "outdoor": "Terrasse", "outdoor_m": 28, "status": "frei"}, "13.11": {"house": "13", "floor": "2.OG", "rooms": "4.5", "size": 110, "orient": "Ost", "netto": 2020, "nk": 200, "brutto": 2220, "outdoor": "Terrasse", "outdoor_m": 24, "status": "frei"}, "13.12": {"house": "13", "floor": "AG", "rooms": "4.5", "size": 112, "orient": "West", "netto": 2140, "nk": 200, "brutto": 2340, "outdoor": "Dachterrasse", "outdoor_m": 39, "status": "reserviert"}, "13.13": {"house": "13", "floor": "AG", "rooms": "3.5", "size": 101, "orient": "Mitte", "netto": 1940, "nk": 200, "brutto": 2140, "outdoor": "Dachterrasse", "outdoor_m": 38, "status": "reserviert"}, "13.14": {"house": "13", "floor": "AG", "rooms": "4.5", "size": 112, "orient": "Ost", "netto": 2140, "nk": 200, "brutto": 2340, "outdoor": "Dachterrasse", "outdoor_m": 39, "status": "reserviert"}, "15.01": {"house": "15", "floor": "EG", "rooms": "4.5", "size": 116, "orient": "Süd", "netto": 2150, "nk": 200, "brutto": 2350, "outdoor": "Sitzplatz", "outdoor_m": 25, "status": "frei"}, "15.02": {"house": "15", "floor": "EG", "rooms": "4.5", "size": 117, "orient": "Mitte", "netto": 2100, "nk": 200, "brutto": 2300, "outdoor": "Sitzplatz", "outdoor_m": 22, "status": "frei"}, "15.03": {"house": "15", "floor": "EG", "rooms": "2.5", "size": 71, "orient": "Mitte", "netto": 1310, "nk": 200, "brutto": 1510, "outdoor": "Sitzplatz", "outdoor_m": 18, "status": "frei"}, "15.04": {"house": "15", "floor": "EG", "rooms": "5.5", "size": 137, "orient": "Nord", "netto": 2400, "nk": 200, "brutto": 2600, "outdoor": "Sitzplatz", "outdoor_m": 28, "status": "frei"}, "15.05": {"house": "15", "floor": "1.OG", "rooms": "4.5", "size": 116, "orient": "Süd", "netto": 2130, "nk": 200, "brutto": 2330, "outdoor": "Terrasse", "outdoor_m": 24, "status": "frei"}, "15.06": {"house": "15", "floor": "1.OG", "rooms": "4.5", "size": 117, "orient": "Mitte", "netto": 2070, "nk": 200, "brutto": 2270, "outdoor": "Terrasse", "outdoor_m": 22, "status": "frei"}, "15.07": {"house": "15", "floor": "1.OG", "rooms": "3.5", "size": 97, "orient": "Mitte", "netto": 1760, "nk": 200, "brutto": 1960, "outdoor": "Terrasse", "outdoor_m": 20, "status": "vermietet"}, "15.08": {"house": "15", "floor": "1.OG", "rooms": "4.5", "size": 112, "orient": "Nord", "netto": 2040, "nk": 200, "brutto": 2240, "outdoor": "Terrasse", "outdoor_m": 22, "status": "vermietet"}, "15.09": {"house": "15", "floor": "2.OG", "rooms": "4.5", "size": 116, "orient": "Süd", "netto": 2130, "nk": 200, "brutto": 2330, "outdoor": "Terrasse", "outdoor_m": 24, "status": "frei"}, "15.10": {"house": "15", "floor": "2.OG", "rooms": "4.5", "size": 117, "orient": "Mitte", "netto": 2100, "nk": 200, "brutto": 2300, "outdoor": "Terrasse", "outdoor_m": 22, "status": "vermietet"}, "15.11": {"house": "15", "floor": "2.OG", "rooms": "3.5", "size": 97, "orient": "Mitte", "netto": 1780, "nk": 200, "brutto": 1980, "outdoor": "Terrasse", "outdoor_m": 20, "status": "vermietet"}, "15.12": {"house": "15", "floor": "2.OG", "rooms": "4.5", "size": 112, "orient": "Nord", "netto": 2040, "nk": 200, "brutto": 2240, "outdoor": "Terrasse", "outdoor_m": 22, "status": "frei"}, "15.13": {"house": "15", "floor": "AG", "rooms": "4.5", "size": 121, "orient": "Süd", "netto": 2240, "nk": 200, "brutto": 2440, "outdoor": "Dachterrasse", "outdoor_m": 38, "status": "reserviert"}, "15.14": {"house": "15", "floor": "AG", "rooms": "4.5", "size": 113, "orient": "Mitte", "netto": 2040, "nk": 200, "brutto": 2240, "outdoor": "Dachterrasse", "outdoor_m": 32, "status": "frei"}, "15.15": {"house": "15", "floor": "AG", "rooms": "4.5", "size": 122, "orient": "Nord", "netto": 2240, "nk": 200, "brutto": 2440, "outdoor": "Dachterrasse", "outdoor_m": 35, "status": "frei"}};
+const SL={"frei":"Verfügbar","reserviert":"Reserviert","vermietet":"Vermietet"};
+const FLOORS=["EG","1.OG","2.OG","AG"];
+const SIZES=["2.5","3.5","4.5","5.5"];
+let ah="all",af="all",az="all",sid=null,hid=null;
+let sc=1,px=0,py=0,drag=false,lm={x:0,y:0};
+
+document.getElementById("sf").textContent=Object.values(A).filter(a=>a.status==="frei").length;
+document.getElementById("sr").textContent=Object.values(A).filter(a=>a.status==="reserviert").length;
+
+function fit(){const p=document.getElementById("ip"),sw=2598,sh=1727;sc=Math.min(p.clientWidth/sw,p.clientHeight/sh)*0.88;px=(p.clientWidth-sw*sc)/2;py=(p.clientHeight-sh*sc)/2;apT();}
+function apT(){document.getElementById("ic").style.transform=`translate(${px}px,${py}px) scale(${sc})`;}
+function zm(f){const p=document.getElementById("ip");sc=Math.max(0.1,Math.min(5,sc*f));px=p.clientWidth/2-(p.clientWidth/2-px)*f;py=p.clientHeight/2-(p.clientHeight/2-py)*f;apT();}
+function rz(){fit();}
+
+const ip=document.getElementById("ip");
+ip.addEventListener("mousedown",e=>{if(e.target.closest(".apt"))return;drag=true;lm={x:e.clientX,y:e.clientY};});
+window.addEventListener("mousemove",e=>{if(!drag)return;px+=e.clientX-lm.x;py+=e.clientY-lm.y;lm={x:e.clientX,y:e.clientY};apT();});
+window.addEventListener("mouseup",()=>drag=false);
+ip.addEventListener("wheel",e=>{e.preventDefault();zm(e.deltaY<0?1.12:0.89);},{passive:false});
+
+function lit(id){
+  document.getElementById("ic").classList.add("dimmed");
+  document.querySelectorAll(".apt").forEach(e=>e.classList.remove("lit"));
+  if(id)document.querySelectorAll(".apt-"+id.replace(".","_")).forEach(e=>e.classList.add("lit"));
+}
+function clr(){
+  document.getElementById("ic").classList.remove("dimmed");
+  document.querySelectorAll(".apt").forEach(e=>e.classList.remove("lit","sel"));
+  if(sid){
+    document.getElementById("ic").classList.add("dimmed");
+    document.querySelectorAll(".apt-"+sid.replace(".","_")).forEach(e=>e.classList.add("lit","sel"));
+  }
+}
+
+document.querySelectorAll(".apt").forEach(el=>{
+  el.addEventListener("mouseenter",e=>{hid=el.dataset.apt;lit(hid);showTT(hid,e);hlL(hid);});
+  el.addEventListener("mousemove",e=>mvTT(e));
+  el.addEventListener("mouseleave",()=>{hid=null;clr();hideTT();hlL(sid);});
+  el.addEventListener("click",()=>{
+    const id=el.dataset.apt;
+    sid=(sid===id)?null:id;
+    document.querySelectorAll(".apt").forEach(e=>e.classList.remove("sel"));
+    if(sid){
+      document.querySelectorAll(".apt-"+sid.replace(".","_")).forEach(e=>e.classList.add("sel"));
+      const a=A[sid];
+      if(a){ah=a.house;af=a.floor;az="all";syncTabs();rl();}
+    }
+    hlL(sid);
+  });
+});
+
+function fmt(n){return n?n.toLocaleString("de-CH"):"—";}
+
+function showTT(id,e){
+  const a=A[id];if(!a)return;
+  document.getElementById("tt-nr").textContent=id;
+  document.getElementById("tt-nm").textContent=a.rooms+"-Zimmer-Wohnung";
+  document.getElementById("tt-or").textContent="Ausrichtung: "+a.orient;
+  const ts=document.getElementById("tt-st");ts.className="tt-st "+a.status;ts.textContent=SL[a.status];
+  document.getElementById("tt-sz").innerHTML=a.size+' <small>m²</small>';
+  document.getElementById("tt-rm").innerHTML=a.rooms+' <small>Zi.</small>';
+  document.getElementById("tt-fl").textContent=a.floor;
+  document.getElementById("tt-ot").innerHTML=a.outdoor+'<br><small style="font-size:9px">'+a.outdoor_m+' m²</small>';
+  document.getElementById("tt-nt").innerHTML='<small>CHF </small>'+fmt(a.netto);
+  document.getElementById("tt-nk").innerHTML='<small>CHF </small>'+fmt(a.nk);
+  document.getElementById("tt-br").innerHTML='<small>CHF </small>'+fmt(a.brutto);
+  const bt=document.getElementById("tt-bt");
+  if(a.status==="vermietet"){bt.textContent="Bereits vermietet";bt.disabled=true;bt.classList.remove("wait");}
+  else if(a.status==="reserviert"){bt.textContent="Warteliste anfragen";bt.disabled=false;bt.classList.add("wait");}
+  else{bt.textContent="Besichtigung anfragen";bt.disabled=false;bt.classList.remove("wait");}
+  mvTT(e);
+  document.getElementById("tt").classList.add("show");
+}
+function mvTT(e){
+  const tt=document.getElementById("tt"),r=ip.getBoundingClientRect();
+  let x=e.clientX-r.left+16,y=e.clientY-r.top-tt.offsetHeight/2;
+  if(x+220>r.width)x=e.clientX-r.left-225;
+  if(y<6)y=6;
+  if(y+tt.offsetHeight>r.height-6)y=r.height-tt.offsetHeight-6;
+  tt.style.left=x+"px";tt.style.top=y+"px";
+}
+function hideTT(){document.getElementById("tt").classList.remove("show");}
+function doC(){
+  const id=document.getElementById("tt-nr").textContent;
+  const a=A[id];if(!a)return;
+  alert("Anfrage für Wohnung "+id+"\n"+a.rooms+" Zi. · "+a.size+" m²\nNettomiete: CHF "+fmt(a.netto)+"\nNebenkosten: CHF "+fmt(a.nk)+"\nBruttomiete: CHF "+fmt(a.brutto)+"\n\ninfo@livingstreet.ch");
+}
+
+function ffl(fl,btn){
+  document.querySelectorAll(".fli").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  document.querySelectorAll(".apt").forEach(el=>{
+    const show=fl==="all"||el.dataset.floor===fl;
+    el.style.opacity=show?"":"0";
+    el.style.pointerEvents=show?"":"none";
+  });
+}
+
+function hlL(id){
+  document.querySelectorAll(".ar").forEach(r=>r.classList.toggle("on",r.dataset.id===id));
+  if(id){const el=document.querySelector('.ar[data-id="'+id+'"]');if(el)el.scrollIntoView({block:'nearest'});}
+}
+
+function matches(id,a){
+  if(ah!=="all"&&a.house!==ah)return false;
+  if(af!=="all"&&a.floor!==af)return false;
+  if(az!=="all"&&a.rooms!==az)return false;
+  return true;
+}
+
+function syncTabs(){
+  document.querySelectorAll("#htabs .fb").forEach(b=>b.classList.toggle("on",b.dataset.val===ah));
+  document.querySelectorAll("#ftabs .fb").forEach(b=>b.classList.toggle("on",b.dataset.val===af));
+  document.querySelectorAll("#ztabs .fb").forEach(b=>b.classList.toggle("on",b.dataset.val===az));
+}
+
+function applyHouseViz(){
+  document.querySelectorAll(".apt").forEach(el=>{
+    if(ah==="all"){el.style.opacity="";el.style.pointerEvents="";}
+    else{const show=el.dataset.house===ah;el.style.opacity=show?"":"0.12";el.style.pointerEvents=show?"":"none";}
+  });
+}
+
+function buildTabs(){
+  const ht=document.getElementById("htabs");
+  [["all","Alle"],["11","Haus 11"],["13","Haus 13"],["15","Haus 15"]].forEach(([v,l])=>{
+    const b=document.createElement("button");
+    b.className="fb"+(ah===v?" on":"");b.textContent=l;b.dataset.val=v;
+    b.onclick=()=>{ah=v;syncTabs();applyHouseViz();rl();};
+    ht.appendChild(b);
+  });
+  const ft=document.getElementById("ftabs");
+  [["all","Alle"],...FLOORS.map(f=>[f,f])].forEach(([v,l])=>{
+    const b=document.createElement("button");
+    b.className="fb"+(af===v?" on":"");b.textContent=l;b.dataset.val=v;
+    b.onclick=()=>{af=v;syncTabs();rl();};
+    ft.appendChild(b);
+  });
+  const zt=document.getElementById("ztabs");
+  [["all","Alle"],...SIZES.map(s=>[s,s+" Zi."])].forEach(([v,l])=>{
+    const b=document.createElement("button");
+    b.className="fb"+(az===v?" on":"");b.textContent=l;b.dataset.val=v;
+    b.onclick=()=>{az=v;syncTabs();rl();};
+    zt.appendChild(b);
+  });
+}
+
+function rl(){
+  const el=document.getElementById("list");el.innerHTML="";
+  const filtered=Object.entries(A).filter(([id,a])=>matches(id,a)).sort((x,y)=>x[0].localeCompare(y[0]));
+  if(!filtered.length){el.innerHTML='<div class="no-results">Keine Wohnungen gefunden</div>';return;}
+  filtered.forEach(([id,a])=>{
+    const row=document.createElement("div");
+    row.className="ar "+a.status+(sid===id?" on":"");
+    row.dataset.id=id;
+    row.innerHTML=
+      '<div class="nr">'+id+'</div>'+
+      '<div class="me"><b>'+a.rooms+'-Zi. · '+a.size+' m²</b>'+a.orient+' · '+a.floor+'</div>'+
+      '<div class="ch">'+(a.status==="vermietet"
+        ? "Vermietet"
+        : 'CHF '+fmt(a.netto)+'<br><small style="font-size:8px;color:var(--m)">+ CHF '+fmt(a.nk)+' NK</small>'
+      )+'</div>';
+    row.addEventListener("mouseenter",()=>lit(id));
+    row.addEventListener("mouseleave",()=>clr());
+    row.addEventListener("click",()=>{
+      sid=(sid===id)?null:id;
+      document.querySelectorAll(".apt").forEach(e=>e.classList.remove("sel"));
+      if(sid)document.querySelectorAll(".apt-"+sid.replace(".","_")).forEach(e=>e.classList.add("sel"));
+      rl();
+    });
+    el.appendChild(row);
+  });
+}
+
+fit();
+window.addEventListener("resize",fit);
+buildTabs();
+rl();
+</script>
+</body>
+</html>
